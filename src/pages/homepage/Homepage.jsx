@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import Navbar from '../../components/Navbar';
+
 import { testApi } from '../../apis/Api';
 
 const Homepage = () => {
@@ -19,9 +19,13 @@ const Homepage = () => {
 
 
     return (
+        <>
         <div>
+           
             HomePage!!!
+
             </div>
+            </>
     )
 }
 
