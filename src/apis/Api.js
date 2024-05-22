@@ -17,6 +17,9 @@ export const testApi = () => Api.get('/test')
 
 export const registerUserApi = (data) => Api.post('/api/user/create',data)
 
+// Login Api
+export const loginUserApi = (data) => Api.post('/api/user/login',data)
+
 
 // "http://localhost:5000/test"
 

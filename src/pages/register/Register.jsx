@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { registerUserApi } from '../../apis/Api'
+import { toast } from 'react-toastify'
 
 const Register = () => {
   //Logic Section
@@ -103,7 +104,12 @@ const Register = () => {
     
     }
     registerUserApi(data).then((res) =>{
-      console.log(res.data)
+      // Receive data : sucess, message
+      if(res.data.sucess == false){
+        toast.error(res.data.message)
+      }else{
+        toast.success(res.data.message)
+      }
     })
   }
 
