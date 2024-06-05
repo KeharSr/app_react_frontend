@@ -1,66 +1,90 @@
-// import React from 'react'
 
-// function Admin_Dashboard() {
-//     return (
-//         <div>
-//             <h1>Admin Dashboard  </h1>
-
-//             <div class="modal" tabindex="-1">
-//   <div class="modal-dialog">
-//     <div class="modal-content">
-//       <div class="modal-header">
-//         <h5 class="modal-title">Modal title</h5>
-//         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-//       </div>
-//       <div class="modal-body">
-//         <p>Modal body text goes here.</p>
-//       </div>
-//       <div class="modal-footer">
-//         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-//         <button type="button" class="btn btn-primary">Save changes</button>
-//       </div>
-//     </div>
-//   </div>
-// </div>
-
-//             <table class="table">
-//                 <thead class='table-dark'>
-
-//                     <tr>
-//                         <th> Product Image</th>
-//                         <th> Product Name</th>
-//                         <th> Product Price</th>
-//                         <th> Product Description</th>
-//                         <th> Product Category</th>
-//                         <th> Actions</th>
-//                     </tr>
-//                 </thead>
-//                 <tbody>
-//                     <tr>
-
-//                         <td>
-//                             <img width={'40px'} height={'40px'} src="https://www.hindustantimes.com/ht-img/img/2023/10/29/1600x900/32143358-gta-setting-birgt-riesige-gefahr-schuld-i_1695890871511_1698600347847.jpg" alt=" " style={{ width: '100px', height: '50px' }} /></td>
-//                         <td>Gta 6</td>
-//                         <td>100$</td>
-//                         <td>Top in the gaming</td>
-//                         <td>Games</td>
-//                         <td>
-//                             <button className="btn btn-primary">Edit</button>
-//                             <button className="btn btn-danger">Delete</button>
-//                         </td>
-//                     </tr>
-//                 </tbody>
-//             </table>
-//         </div>
-//     )
-// }
-
-// export default Admin_Dashboard
+import React, { useState,useEffect } from 'react'
+import { toast } from 'react-toastify'
+import { createProductApi, getAllProductsApi } from '../../../apis/Api'
+import { Link } from 'react-router-dom'
 
 
-import React from 'react'
 
 const AdminDashboard = () => {
+
+    // 1. State for all fetched products
+    const [products, setProducts] = useState([])
+
+    //call api initially (page load) - set all fetch products to state (1)
+    useEffect(() => {
+        getAllProductsApi().then((res)=>{
+            // response : res.data.products (All products)
+            setProducts(res.data.data)
+            console.log(products)
+
+        }).catch((error)=>{
+            console.log(error)
+        
+        })
+    },[])
+
+
+    //use state
+    const [productName, setProductName] = useState('')
+    const [productPrice, setProductPrice] = useState('')
+    const [productCategory, setProductCategory] = useState('')
+    const [productDescription, setProductDescription] = useState('')
+
+    //state for image
+    const [productImage, setProductImage] = useState('')
+    const [previewImage, setPreviewImage] = useState('')
+
+    //function for image
+    const handleImage = (event) => {
+        const file = event.target.files[0]
+        setProductImage(file) //for backend
+        setPreviewImage(URL.createObjectURL(file))
+    }
+
+    // handle submit
+    const handleSubmit = (e) => {
+        e.preventDefault()
+
+        // make a form data (text,files)
+        const formData = new FormData()
+        formData.append('productName', productName)
+        formData.append('productPrice', productPrice)
+        formData.append('productCategory', productCategory)
+        formData.append('productDescription', productDescription)
+        formData.append('productImage', productImage)
+
+        // make a api call
+        createProductApi(formData).then((res) => {
+
+            //for success Api
+            if (res.data.success === 201) {
+                toast.success(res.data.message)
+
+            }
+
+        }).catch((error) => {
+            if (error.response) {
+
+                if (error.response.status === 400) {
+                    toast.warning(error.response.data.message)
+
+                } else if (error.response.status === 500) {
+                    toast.warning(error.response.data.message)
+
+                }
+                 else {
+                    toast.error('Something went worng')
+                }
+
+            } 
+            else {
+                toast.error('Something went worng')
+            }
+        });
+
+    }
+
     return (
         <>
 
@@ -84,15 +108,37 @@ const AdminDashboard = () => {
                                 <div class="modal-body">
                                     <form action=''>
                                         <label>Product Name</label>
-                                        <input type='text' className='form-control' placeholder='Enter Product Name' />
-                                        <label>Product Price</label>
-                                        <input type='number' className='form-control' placeholder='Enter Product Price' />
+                                        <input onChange={(e) => setProductName(e.target.value)} type='text' className='form-control' placeholder='Enter Product Name' />
+
+                                        <label className='mt-2'>Product Price</label>
+                                        <input onChange={(e) => setProductPrice(e.target.value)} type='number' className='form-control' placeholder='Enter Product Price' />
+
+                                        <label className='mt-2'>Product Category</label>
+                                        <select onChange={(e) => setProductCategory(e.target.value)} className='form-control'>
+                                            <option value='Action'>Action</option>
+                                            <option value='Strategy'>Strategy</option>
+
+                                        </select>
+
+                                        <label className='mt-2'>Enter Description</label>
+                                        <textarea onChange={(e) => setProductDescription(e.target.value)} className='form-control' placeholder='Enter Description'></textarea>
+
+                                        <label className='mt-2'>Product Image</label>
+                                        <input onChange={handleImage} type='file' className='form-control' />
+
+                                        {
+                                            previewImage && <img src={previewImage} alt=" preview image" className='img-fluid rounded mt-2' />
+                                        }
+
                                     </form>
 
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                    <button type="button" class="btn btn-primary">Save changes</button>
+                                    <button onClick={handleSubmit} type='button' class="btn btn-primary">Save </button>
+
+                                    {/* Preview Image */}
+
                                 </div>
                             </div>
                         </div>
@@ -112,19 +158,23 @@ const AdminDashboard = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>
-                                <img width={'10%'} height={'40%'} src="https://www.hindustantimes.com/ht-img/img/2023/10/29/1600x900/32143358-gta-setting-birgt-riesige-gefahr-schuld-i_1695890871511_1698600347847.jpg" alt=" " style={{ width: '100px', height: '50px' }} /></td>
-                            
-                            <td>Gta 6</td>
-                            <td>200</td>
-                            <td>Indoor</td>
-                            <td>Beautiful Flower</td>
-                            <td>
-                                <button className='btn btn-primary'> Edit</button>
-                                <button className='btn btn-danger ms-2'> Delete</button>
-                            </td>
-                        </tr>
+                        {
+                            products.map((singleProduct) => (
+                                <tr>
+                                <td>
+                                    <img width={'10%'} height={'40%'} src={`http://localhpst:5000/products/${singleProduct.productImage}`} alt=" " style={{ width: '100px', height: '50px' }} /></td>
+    
+                                <td>{singleProduct.productName}</td>
+                                <td>{singleProduct.productPrice}</td>
+                                <td>{singleProduct.productCategory}</td>
+                                <td>{singleProduct.productDescription}</td>
+                                <td>
+                                    <Link to ={`/admin/update/${singleProduct._id}`} className='btn btn-primary'> Edit</Link>
+                                    <button className='btn btn-danger ms-2'> Delete</button>
+                                </td>
+                            </tr>
+                            ))
+                        }
                     </tbody>
                 </table>
             </div>
@@ -135,4 +185,12 @@ const AdminDashboard = () => {
     )
 }
 
+
 export default AdminDashboard
+
+
+// Edit product
+// Admin Dsshboard
+// Make a route
+// Fill all the related information Only
+
