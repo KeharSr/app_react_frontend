@@ -1,7 +1,7 @@
 
-import React, { useState,useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { toast } from 'react-toastify'
-import { createProductApi, getAllProductsApi } from '../../../apis/Api'
+import { createProductApi, deleteProduct, getAllProductsApi } from '../../../apis/Api'
 import { Link } from 'react-router-dom'
 
 
@@ -13,16 +13,16 @@ const AdminDashboard = () => {
 
     //call api initially (page load) - set all fetch products to state (1)
     useEffect(() => {
-        getAllProductsApi().then((res)=>{
+        getAllProductsApi().then((res) => {
             // response : res.data.products (All products)
-            setProducts(res.data.data)
+            setProducts(res.data.products)
             console.log(products)
 
-        }).catch((error)=>{
+        }).catch((error) => {
             console.log(error)
-        
+
         })
-    },[])
+    }, [])
 
 
     //use state
@@ -73,16 +73,44 @@ const AdminDashboard = () => {
                     toast.warning(error.response.data.message)
 
                 }
-                 else {
+                else {
                     toast.error('Something went worng')
                 }
 
-            } 
-            else {
-                toast.error('Something went worng')
             }
+            
         });
 
+    }
+
+    //handle delete product
+    const handleDelete = (id) => {
+        const confirmDialog = window.confirm('Are you sure you want to delete this product?')
+        if (confirmDialog) {
+            // make a api call
+            deleteProduct(id).then((res) => {
+                if (res.status === 201) {
+                    toast.success(res.data.message)
+                    window.location.reload()
+                }
+            }).catch((error) => {
+                if (error.response) {
+                    if (error.response.status === 500) {
+                        toast.error(error.response.data.message)
+                        
+                    } else if (error.response.status === 500) {
+                        toast.warning(error.response.data.message)
+                    }
+                    else {
+                        toast.error('Something went worng')
+                    }
+                }
+            })
+            
+           
+        }
+        // make a api call
+        
     }
 
     return (
@@ -161,18 +189,18 @@ const AdminDashboard = () => {
                         {
                             products.map((singleProduct) => (
                                 <tr>
-                                <td>
-                                    <img width={'10%'} height={'40%'} src={`http://localhpst:5000/products/${singleProduct.productImage}`} alt=" " style={{ width: '100px', height: '50px' }} /></td>
-    
-                                <td>{singleProduct.productName}</td>
-                                <td>{singleProduct.productPrice}</td>
-                                <td>{singleProduct.productCategory}</td>
-                                <td>{singleProduct.productDescription}</td>
-                                <td>
-                                    <Link to ={`/admin/update/${singleProduct._id}`} className='btn btn-primary'> Edit</Link>
-                                    <button className='btn btn-danger ms-2'> Delete</button>
-                                </td>
-                            </tr>
+                                    <td>
+                                        <img width={'10%'} height={'40%'} src={`http://localhpst:5000/products/${singleProduct.productImage}`} alt=" " style={{ width: '100px', height: '50px' }} /></td>
+
+                                    <td>{singleProduct.productName}</td>
+                                    <td>{singleProduct.productPrice}</td>
+                                    <td>{singleProduct.productCategory}</td>
+                                    <td>{singleProduct.productDescription}</td>
+                                    <td>
+                                        <Link to={`/admin/update/${singleProduct._id}`} className='btn btn-primary'> Edit</Link>
+                                        <button onClick={()=> handleDelete(singleProduct._id)} className='btn btn-danger ms-2'> Delete</button>
+                                    </td>
+                                </tr>
                             ))
                         }
                     </tbody>
